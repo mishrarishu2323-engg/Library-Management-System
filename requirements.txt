@@ -3,3 +3,4 @@ mysql-connector-python
 Werkzeug
 gunicorn
 python-dotenv
+qrcode[pil]

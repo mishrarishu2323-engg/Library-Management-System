@@ -1,13 +1,32 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 from db import get_db_connection
 from datetime import date, timedelta
 import re
+import qrcode
+from io import BytesIO
 
 
 app = Flask(__name__)
 
 app.secret_key = "library-management-secret-key"
 
+# ==============================
+# QR CODE GENERATION
+# ==============================
+
+@app.route('/book-qr/<int:book_id>')
+def book_qr(book_id):
+
+    if 'admin_id' not in session:
+        return redirect(url_for('login'))
+
+    qr = qrcode.make(f"BOOK:{book_id}")
+
+    qr_image = BytesIO()
+    qr.save(qr_image, format='PNG')
+    qr_image.seek(0)
+
+    return send_file(qr_image, mimetype='image/png')
 
 # =========================================================
 # HOME
@@ -181,6 +200,19 @@ def dashboard():
         total_issues = cursor.fetchone()[0]
 
         # -------------------------
+        # TOTAL OVERDUE BOOKS
+        # -------------------------
+
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM book_issues
+            WHERE status = 'Issued'
+            AND due_date < %s
+        """, (date.today(),))
+
+        total_overdue = cursor.fetchone()[0]
+
+        # -------------------------
         # TOTAL UNPAID FINES
         # -------------------------
 
@@ -199,6 +231,7 @@ def dashboard():
             total_students=total_students,
             total_categories=total_categories,
             total_issues=total_issues,
+            total_overdue=total_overdue,
             total_fines=total_fines
         )
 
@@ -628,6 +661,17 @@ def issue_book():
 
             student_id = request.form.get("student_id", "").strip()
             book_id = request.form.get("book_id", "").strip()
+            qr_book_id = request.form.get("qr_book_id", "").strip()
+
+            if qr_book_id:
+                if qr_book_id.startswith("BOOK:"):
+                    qr_book_id = qr_book_id.replace("BOOK:", "", 1)
+
+                if qr_book_id.isdigit():
+                    book_id = qr_book_id
+                else:
+                    flash("Invalid Book QR Code!", "danger")
+                    return redirect(url_for("issue_book"))
 
             # -------------------------
             # BASIC VALIDATION
@@ -942,6 +986,40 @@ def return_book():
 
             issue_id = request.form.get("issue_id", "").strip()
 
+            # ================= QR CODE RETURN =================
+
+            qr_book_id = request.form.get("qr_book_id", "").strip()
+
+            if qr_book_id:
+
+                if qr_book_id.startswith("BOOK:"):
+                    qr_book_id = qr_book_id.replace("BOOK:", "", 1)
+
+                if not qr_book_id.isdigit():
+                    flash("Invalid Book QR Code!", "danger")
+                    return redirect(url_for("return_book"))
+
+                cursor.execute("""
+                    SELECT issue_id
+                    FROM book_issues
+                    WHERE book_id = %s
+                    AND status = 'Issued'
+                    LIMIT 1
+                """, (qr_book_id,))
+
+                active_issue = cursor.fetchone()
+
+                if not active_issue:
+                    flash(
+                        "This book is not currently issued.",
+                        "warning"
+                    )
+                    return redirect(url_for("return_book"))
+
+                issue_id = str(active_issue["issue_id"])
+
+            # ================= END QR CODE RETURN =================
+
             if not issue_id:
                 flash(
                     "Invalid issue record!",
@@ -1159,6 +1237,72 @@ def return_book():
 
         if connection:
             connection.close()
+
+# ==========================================================
+# OVERDUE BOOKS
+# ==========================================================
+
+@app.route("/overdue-books")
+def overdue_books():
+
+    if "admin_id" not in session:
+        return redirect(url_for("login"))
+
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("""
+            SELECT
+                bi.issue_id,
+                s.name AS student_name,
+                s.roll_no,
+                b.title AS book_title,
+                bi.issue_date,
+                bi.due_date,
+                DATEDIFF(CURDATE(), bi.due_date) AS late_days
+            FROM book_issues bi
+            JOIN students s
+                ON bi.student_id = s.student_id
+            JOIN books b
+                ON bi.book_id = b.book_id
+            WHERE bi.status = 'Issued'
+              AND bi.due_date < CURDATE()
+            ORDER BY bi.due_date ASC
+        """)
+
+        overdue_books = cursor.fetchall()
+
+        return render_template(
+            "overdue_books.html",
+            username=session["username"],
+            overdue_books=overdue_books
+        )
+
+    except Exception as e:
+        print("Overdue Books Error:", e)
+
+        flash(
+            "Unable to load overdue books. Please try again!",
+            "danger"
+        )
+
+        return render_template(
+            "overdue_books.html",
+            username=session["username"],
+            overdue_books=[]
+        )
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
+
 # =========================================================
 # STUDENTS
 # =========================================================

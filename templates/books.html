@@ -554,6 +554,11 @@
                 <span>Return Book</span>
             </a>
 
+            <a href="{{ url_for('overdue_books') }}">
+                <span class="menu-icon">⚠️</span>
+                <span>Overdue Books</span>
+            </a>
+
             <a href="{{ url_for('manage_fine') }}">
                 <span class="menu-icon">💰</span>
                 <span>Manage Fine</span>
@@ -838,6 +843,7 @@
                                     <th>Category</th>
                                     <th>Quantity</th>
                                     <th>Available</th>
+                                    <th>QR Code</th>
                                     <th>Action</th>
 
                                 </tr>
@@ -873,6 +879,16 @@
 
                                         <td class="available">
                                             {{ book.available_quantity }}
+                                        </td>
+
+                                        <td>
+                                            <img
+                                                src="{{ url_for('book_qr', book_id=book.book_id) }}"
+                                                alt="Book QR Code"
+                                                width="80"
+                                                height="80"
+                                                loading="lazy"
+                                            >
                                         </td>
 
                                         <td>

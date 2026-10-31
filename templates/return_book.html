@@ -430,6 +430,64 @@
             color: #173b70;
         }
 
+        /* =========================
+            QR CODE SCANNER
+        ========================= */
+
+        .qr-scanner-section {
+            padding: 18px;
+            background: #f1f5ff;
+            border: 1px solid #dbe4ff;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .qr-scanner-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 12px;
+        }
+
+        .qr-scanner-description {
+            font-size: 13px;
+            font-weight: 400;
+            color: #718096;
+            line-height: 1.6;
+            letter-spacing: 0.1px;
+        }
+
+        .qr-camera-btn {
+            margin-top: 12px;
+            padding: 0 18px;
+            height: 44px;
+            background: #173b70;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .qr-camera-btn:hover {
+            background: #102e59;
+            transform: translateY(-1px);
+        }
+
+        #return-qr-reader {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 15px;
+        }
+
+        #return-qr-status {
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #4a5568;
+        }
 
         /* ================= RESPONSIVE ================= */
 
@@ -477,6 +535,8 @@
         }
 
     </style>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
 </head>
 
@@ -551,6 +611,11 @@
             <span class="menu-icon">↩️</span>
             <span>Return Book</span>
 
+        </a>
+
+        <a href="{{ url_for('overdue_books') }}">
+            <span class="menu-icon">⚠️</span>
+            <span>Overdue Books</span>
         </a>
 
 
@@ -679,6 +744,36 @@
                 </div>
 
             </div>
+
+            <!-- ================= QR RETURN SCANNER ================= -->
+
+            <div class="qr-scanner-section">
+
+                <div class="qr-scanner-title">
+                    📷 Scan Book QR Code
+                </div>
+
+                <div class="qr-scanner-description">
+                    Scan the book QR code to return the book automatically.
+                </div>
+
+                <button
+                    type="button"
+                    id="start-return-camera"
+                    class="qr-camera-btn"
+                >
+                    📷 Start Camera Scanner
+                </button>
+
+                <div id="return-qr-reader"></div>
+
+                <div id="return-qr-status">
+                    Scan a book QR code to return the book automatically.
+                </div>
+
+            </div>
+
+            <!-- ================= END QR RETURN SCANNER ================= -->
 
 
             <div class="table-wrapper">
@@ -1006,6 +1101,157 @@
 
 </script>
 
+<!-- ================= QR RETURN SCANNER SCRIPT ================= -->
+
+<script>
+
+    const startReturnCameraBtn =
+        document.getElementById("start-return-camera");
+
+    const returnQrStatus =
+        document.getElementById("return-qr-status");
+
+    let returnQrScanner = null;
+    let returnScannerRunning = false;
+
+
+    startReturnCameraBtn.addEventListener("click", async function () {
+
+        if (returnScannerRunning) {
+
+            await returnQrScanner.stop();
+
+            returnScannerRunning = false;
+
+            startReturnCameraBtn.textContent =
+                "📷 Start Camera Scanner";
+
+            returnQrStatus.textContent =
+                "Camera scanner stopped.";
+
+            return;
+
+        }
+
+
+        returnQrScanner =
+            new Html5Qrcode("return-qr-reader");
+
+
+        try {
+
+            const cameras =
+                await Html5Qrcode.getCameras();
+
+
+            if (cameras.length === 0) {
+
+                returnQrStatus.textContent =
+                    "No camera found!";
+
+                return;
+
+            }
+
+
+            const camera =
+                cameras.find(c =>
+                    c.label.toLowerCase().includes("back")
+                ) || cameras[0];
+
+
+            await returnQrScanner.start(
+
+                camera.id,
+
+                {
+                    fps: 10,
+                    qrbox: {
+                        width: 250,
+                        height: 250
+                    }
+                },
+
+                async function (decodedText) {
+
+                    const match =
+                        decodedText.match(/^BOOK:(\d+)$/);
+
+
+                    if (!match) {
+
+                        returnQrStatus.textContent =
+                            "Invalid Book QR Code!";
+
+                        return;
+
+                    }
+
+
+                    returnQrStatus.textContent =
+                        "Book QR detected. Processing return...";
+
+
+                    await returnQrScanner.stop();
+
+                    returnScannerRunning = false;
+
+
+                    startReturnCameraBtn.textContent =
+                        "📷 Start Camera Scanner";
+
+
+                    const form =
+                        document.createElement("form");
+
+                    form.method = "POST";
+
+                    form.action =
+                        "{{ url_for('return_book') }}";
+
+
+                    const input =
+                        document.createElement("input");
+
+                    input.type = "hidden";
+
+                    input.name = "qr_book_id";
+
+                    input.value = decodedText;
+
+
+                    form.appendChild(input);
+
+                    document.body.appendChild(form);
+
+                    form.submit();
+
+                }
+
+            );
+
+
+            returnScannerRunning = true;
+
+            startReturnCameraBtn.textContent =
+                "⏹ Stop Camera Scanner";
+
+            returnQrStatus.textContent =
+                "Camera started. Scan a Book QR Code.";
+
+
+        } catch (error) {
+
+            returnQrStatus.textContent =
+                "Camera error: " + error;
+
+        }
+
+    });
+
+</script>
+
+<!-- ================= END QR RETURN SCANNER SCRIPT ================= -->
 
 </body>
 

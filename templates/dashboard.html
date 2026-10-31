@@ -524,6 +524,11 @@
             <span>Return Book</span>
         </a>
 
+        <a href="{{ url_for('overdue_books') }}">
+            <span class="menu-icon">⚠️</span>
+            <span>Overdue Books</span>
+        </a>
+
         <a href="{{ url_for('manage_fine') }}">
             <span class="menu-icon">💰</span>
             <span>Manage Fine</span>
@@ -686,6 +691,16 @@
 
             </div>
 
+            <div class="card">
+                <div class="card-top">
+                    <div class="card-label">Overdue Books</div>
+                    <div class="card-icon">⚠️</div>
+                </div>
+
+                <div class="number">
+                    {{ total_overdue }}
+                </div>
+            </div>
 
             <!-- UNPAID FINES -->
 
