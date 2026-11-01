@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, jsonify
 from db import get_db_connection
 from datetime import date, timedelta
 import re
@@ -1000,23 +1000,57 @@ def return_book():
                     return redirect(url_for("return_book"))
 
                 cursor.execute("""
-                    SELECT issue_id
-                    FROM book_issues
-                    WHERE book_id = %s
-                    AND status = 'Issued'
-                    LIMIT 1
+                    SELECT
+                        bi.issue_id,
+                        bi.student_id,
+                        s.name AS student_name,
+                        s.roll_no,
+                        b.title AS book_title
+                    FROM book_issues bi
+                    JOIN students s
+                        ON bi.student_id = s.student_id
+                    JOIN books b
+                        ON bi.book_id = b.book_id
+                    WHERE bi.book_id = %s
+                    AND bi.status = 'Issued'
+                    ORDER BY bi.issue_id ASC
                 """, (qr_book_id,))
 
-                active_issue = cursor.fetchone()
+                active_issues = cursor.fetchall()
 
-                if not active_issue:
+                if not active_issues:
                     flash(
                         "This book is not currently issued.",
                         "warning"
                     )
                     return redirect(url_for("return_book"))
 
-                issue_id = str(active_issue["issue_id"])
+                # If only one student has the book,
+                # keep existing automatic return behavior.
+                if len(active_issues) == 1:
+
+                    issue_id = str(
+                        active_issues[0]["issue_id"]
+                    )
+
+                # If multiple students have the same book,
+                # send the list to the QR scanner JavaScript.
+                else:
+
+                    return jsonify({
+                        "multiple": True,
+                        "book_id": qr_book_id,
+                        "book_title": active_issues[0]["book_title"],
+                        "students": [
+                            {
+                                "issue_id": issue["issue_id"],
+                                "student_id": issue["student_id"],
+                                "student_name": issue["student_name"],
+                                "roll_no": issue["roll_no"]
+                            }
+                            for issue in active_issues
+                        ]
+                    })
 
             # ================= END QR CODE RETURN =================
 
@@ -1134,20 +1168,16 @@ def return_book():
             connection.commit()
 
             if fine_amount > 0:
-
                 flash(
-                    f"Book returned successfully! "
-                    f"Late by {late_days} day(s). "
-                    f"Fine: ₹{fine_amount}",
+                    f"Book returned successfully! Late by {late_days} day(s). Fine: ₹{fine_amount}",
                     "warning"
                 )
-
             else:
+                flash("Book returned successfully! No fine.", "success")
 
-                flash(
-                    "Book returned successfully! No fine.",
-                    "success"
-                )
+            # Handle QR AJAX return without consuming flash message
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return jsonify({"returned": True})
 
             return redirect(url_for("return_book"))
 

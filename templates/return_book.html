@@ -771,6 +771,20 @@
                     Scan a book QR code to return the book automatically.
                 </div>
 
+                <!-- MULTIPLE STUDENT SELECTION -->
+
+                <div id="qr-student-selection" style="display: none;">
+
+                    <h3 id="qr-selected-book-title"></h3>
+
+                    <p>Select the student whose book is being returned:</p>
+
+                    <div id="qr-student-list"></div>
+
+                </div>
+
+                <!-- END MULTIPLE STUDENT SELECTION -->
+
             </div>
 
             <!-- ================= END QR RETURN SCANNER ================= -->
@@ -1111,8 +1125,18 @@
     const returnQrStatus =
         document.getElementById("return-qr-status");
 
+    const studentSelection =
+        document.getElementById("qr-student-selection");
+
+    const selectedBookTitle =
+        document.getElementById("qr-selected-book-title");
+
+    const studentList =
+        document.getElementById("qr-student-list");
+
     let returnQrScanner = null;
     let returnScannerRunning = false;
+    let qrProcessing = false;
 
 
     startReturnCameraBtn.addEventListener("click", async function () {
@@ -1133,16 +1157,13 @@
 
         }
 
-
         returnQrScanner =
             new Html5Qrcode("return-qr-reader");
-
 
         try {
 
             const cameras =
                 await Html5Qrcode.getCameras();
-
 
             if (cameras.length === 0) {
 
@@ -1153,12 +1174,10 @@
 
             }
 
-
             const camera =
                 cameras.find(c =>
                     c.label.toLowerCase().includes("back")
                 ) || cameras[0];
-
 
             await returnQrScanner.start(
 
@@ -1174,9 +1193,10 @@
 
                 async function (decodedText) {
 
+                    if (qrProcessing) return;
+
                     const match =
                         decodedText.match(/^BOOK:(\d+)$/);
-
 
                     if (!match) {
 
@@ -1187,49 +1207,160 @@
 
                     }
 
+                    qrProcessing = true;
 
                     returnQrStatus.textContent =
-                        "Book QR detected. Processing return...";
-
+                        "Book QR detected. Checking issued students...";
 
                     await returnQrScanner.stop();
 
                     returnScannerRunning = false;
 
-
                     startReturnCameraBtn.textContent =
                         "📷 Start Camera Scanner";
 
+                    try {
 
-                    const form =
-                        document.createElement("form");
+                        const formData = new FormData();
 
-                    form.method = "POST";
+                        formData.append(
+                            "qr_book_id",
+                            decodedText
+                        );
 
-                    form.action =
-                        "{{ url_for('return_book') }}";
+                        const response = await fetch(
+                            "{{ url_for('return_book') }}",
+                            {
+                                method: "POST",
+                                headers: {
+                                    "X-Requested-With": "XMLHttpRequest"
+                                },
+                                body: formData
+                            }
+                        );
 
+                        const contentType =
+                            response.headers.get("content-type") || "";
 
-                    const input =
-                        document.createElement("input");
+                        // Multiple students: display selection list.
+                        if (contentType.includes("application/json")) {
 
-                    input.type = "hidden";
+                            const data = await response.json();
 
-                    input.name = "qr_book_id";
+                            if (data.returned) {
+                                window.location.reload();
+                                return;
+                            }
 
-                    input.value = decodedText;
+                            if (!data.multiple) {
+                                window.location.href = response.url;
+                                return;
+                            }
 
+                            selectedBookTitle.textContent =
+                                "📚 " + data.book_title;
 
-                    form.appendChild(input);
+                            studentList.innerHTML = "";
 
-                    document.body.appendChild(form);
+                            data.students.forEach(function (student) {
 
-                    form.submit();
+                                const studentCard =
+                                    document.createElement("div");
+
+                                studentCard.style.cssText =
+                                    "display:flex;justify-content:space-between;" +
+                                    "align-items:center;gap:12px;padding:12px;" +
+                                    "margin-top:10px;border:1px solid #ddd;" +
+                                    "border-radius:8px;flex-wrap:wrap;";
+
+                                const studentInfo =
+                                    document.createElement("div");
+
+                                const name =
+                                    document.createElement("strong");
+
+                                name.textContent =
+                                    student.student_name;
+
+                                const roll =
+                                    document.createElement("div");
+
+                                roll.textContent =
+                                    "Roll No: " + student.roll_no;
+
+                                studentInfo.appendChild(name);
+                                studentInfo.appendChild(roll);
+
+                                const selectButton =
+                                    document.createElement("button");
+
+                                selectButton.type = "button";
+
+                                selectButton.textContent =
+                                    "Select & Return";
+
+                                selectButton.className =
+                                    "qr-camera-btn";
+
+                                selectButton.addEventListener(
+                                    "click",
+                                    function () {
+
+                                        const returnForm =
+                                            document.createElement("form");
+
+                                        returnForm.method = "POST";
+
+                                        returnForm.action =
+                                            "{{ url_for('return_book') }}";
+
+                                        const issueInput =
+                                            document.createElement("input");
+
+                                        issueInput.type = "hidden";
+                                        issueInput.name = "issue_id";
+                                        issueInput.value = student.issue_id;
+
+                                        returnForm.appendChild(issueInput);
+
+                                        document.body.appendChild(returnForm);
+
+                                        returnForm.submit();
+
+                                    }
+                                );
+
+                                studentCard.appendChild(studentInfo);
+                                studentCard.appendChild(selectButton);
+
+                                studentList.appendChild(studentCard);
+
+                            });
+
+                            studentSelection.style.display = "block";
+
+                            returnQrStatus.textContent =
+                                "Multiple active issues found. Select the student to return.";
+
+                        } else {
+
+                            // Single student: existing automatic return.
+                            window.location.href = response.url;
+
+                        }
+
+                    } catch (error) {
+
+                        returnQrStatus.textContent =
+                            "Error processing QR: " + error.message;
+
+                        qrProcessing = false;
+
+                    }
 
                 }
 
             );
-
 
             returnScannerRunning = true;
 
@@ -1239,11 +1370,12 @@
             returnQrStatus.textContent =
                 "Camera started. Scan a Book QR Code.";
 
-
         } catch (error) {
 
             returnQrStatus.textContent =
                 "Camera error: " + error;
+
+            qrProcessing = false;
 
         }
 
