@@ -167,4 +167,8 @@
         z-index: 1101;
     }
 
+    .logout-menu a {
+        transform: translateY(-40px);
+    }
+
 }
