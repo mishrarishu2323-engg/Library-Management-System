@@ -534,9 +534,22 @@
 
         }
 
+        /*==========================
+           FOOTER
+        ==========================*/
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #8a94a6;
+            font-size: 12px;
+        }
+
     </style>
 
     <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
 
 </head>
 
@@ -652,7 +665,12 @@
 
     <!-- TOPBAR -->
 
+
     <div class="topbar">
+
+        <button type="button" class="mobile-menu-btn" aria-label="Toggle navigation">
+            ☰
+        </button>
 
         <div>
 
@@ -666,11 +684,10 @@
 
         </div>
 
-
         <div class="admin-box">
 
             <div class="admin-name">
-               {{ session.get('username', 'Admin') }} 
+            {{ session.get('username', 'Admin') }}
             </div>
 
             <div class="admin-icon">
@@ -680,6 +697,7 @@
         </div>
 
     </div>
+
 
 
     <!-- CONTENT -->
@@ -1063,6 +1081,11 @@
 
     </div>
 
+    <!-- FOOTER -->
+    <footer>
+        © 2026 Library Management System | All Rights Reserved.
+    </footer>
+
 </div>
 
 
@@ -1384,6 +1407,8 @@
 </script>
 
 <!-- ================= END QR RETURN SCANNER SCRIPT ================= -->
+
+<script src="{{ url_for('static', filename='js/responsive.js') }}"></script>
 
 </body>
 

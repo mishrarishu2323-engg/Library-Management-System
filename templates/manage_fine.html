@@ -443,9 +443,9 @@
 
         footer {
             text-align: center;
-            color: #888;
             padding: 25px;
-            font-size: 13px;
+            color: #8a94a6;
+            font-size: 12px;
         }
 
         /* ================= CONTENT RESPONSIVE ================= */
@@ -493,6 +493,8 @@
         }
 
     </style>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
 
 </head>
 
@@ -614,19 +616,19 @@
 
         <header class="topbar">
 
+            <button type="button" class="mobile-menu-btn" aria-label="Toggle navigation">
+                ☰
+            </button>
+
             <div>
-
                 <h1>Manage Fine</h1>
-
                 <p>Library fine and payment management</p>
-
             </div>
-
 
             <div class="admin-box">
 
                 <div class="admin-name">
-                   {{ session.get('username', 'Admin') }} 
+                    {{ session.get('username', 'Admin') }}
                 </div>
 
                 <div class="admin-icon">
@@ -976,11 +978,8 @@
         <!-- ================= FOOTER ================= -->
 
         <footer>
-
-            Library Management System © 2026
-
+            © 2026 Library Management System | All Rights Reserved.
         </footer>
-
 
     </main>
 
@@ -1020,6 +1019,7 @@
 
     </script>
 
+    <script src="{{ url_for('static', filename='js/responsive.js') }}"></script>
 
 </body>
 

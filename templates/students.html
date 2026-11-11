@@ -557,6 +557,8 @@ footer {
 
 </style>
 
+<link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
+
 </head>
 
 <body>
@@ -645,7 +647,12 @@ footer {
 
     <!-- TOPBAR -->
 
+
     <header class="topbar">
+
+        <button type="button" class="mobile-menu-btn" aria-label="Toggle navigation">
+            ☰
+        </button>
 
         <div>
 
@@ -672,6 +679,7 @@ footer {
         </div>
 
     </header>
+
 
     <!-- CONTENT -->
 
@@ -988,7 +996,7 @@ footer {
     <!-- FOOTER -->
 
     <footer>
-        © 2026 Library Management System | Admin Panel
+        © 2026 Library Management System | All Rights Reserved.
     </footer>
 
 </main>
@@ -1031,6 +1039,8 @@ searchInput.addEventListener("keyup", function () {
 });
 
 </script>
+
+<script src="{{ url_for('static', filename='js/responsive.js') }}"></script>
 
 </body>
 

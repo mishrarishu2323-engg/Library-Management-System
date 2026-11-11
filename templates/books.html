@@ -431,11 +431,11 @@
 
         /* ================= FOOTER ================= */
 
-        .footer {
+        footer {
             text-align: center;
-            color: #888;
+            padding: 25px;
+            color: #8a94a6;
             font-size: 12px;
-            padding: 10px 0 25px;
         }
 
 
@@ -499,6 +499,9 @@
         }
 
     </style>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
+
 </head>
 
 <body>
@@ -585,7 +588,12 @@
 
         <!-- TOPBAR -->
 
+
         <header class="topbar">
+
+            <button type="button" class="mobile-menu-btn" aria-label="Toggle navigation">
+                ☰
+            </button>
 
             <div>
 
@@ -598,7 +606,6 @@
                 </div>
 
             </div>
-
 
             <!-- ADMIN PROFILE -->
 
@@ -615,6 +622,7 @@
             </div>
 
         </header>
+
 
 
         <!-- CONTENT -->
@@ -929,14 +937,12 @@
 
             </div>
 
-
-            <!-- FOOTER -->
-
-            <div class="footer">
-                © 2026 Library Management System | All Rights Reserved.
-            </div>
-
         </section>
+
+        <!-- FOOTER -->
+        <footer>
+            © 2026 Library Management System | All Rights Reserved.
+        </footer>
 
     </main>
 
@@ -992,6 +998,8 @@
         }
 
     </script>
+
+    <script src="{{ url_for('static', filename='js/responsive.js') }}"></script>
 
 </body>
 </html>

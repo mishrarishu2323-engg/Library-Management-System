@@ -585,7 +585,21 @@
 
         }
 
+        /* =========================
+            FOOTER
+        ========================= */
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #8a94a6;
+            font-size: 12px;
+        }
+
     </style>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
+
 </head>
 
 
@@ -696,7 +710,12 @@
 
     <!-- TOPBAR -->
 
+
     <div class="topbar">
+
+        <button type="button" class="mobile-menu-btn" aria-label="Toggle navigation">
+            ☰
+        </button>
 
         <div>
 
@@ -709,7 +728,6 @@
             </div>
 
         </div>
-
 
         <div class="admin-box">
 
@@ -724,6 +742,7 @@
         </div>
 
     </div>
+
 
 
 
@@ -1016,6 +1035,12 @@
 
     </div>
 
+    <!-- FOOTER -->
+
+    <footer>
+        © 2026 Library Management System | All Rights Reserved.
+    </footer>
+
 </div>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
@@ -1107,6 +1132,8 @@
     });
 
 </script>
+
+<script src="{{ url_for('static', filename='js/responsive.js') }}"></script>
 
 </body>
 </html>

@@ -1,0 +1,170 @@
+/* =====================================
+   MOBILE RESPONSIVE DESIGN
+===================================== */
+
+/* Mobile menu button - hidden on desktop */
+.mobile-menu-btn {
+    display: none;
+}
+
+@media screen and (max-width: 768px) {
+
+    /* Sidebar - mobile menu */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 245px;
+        max-width: 85vw;
+        height: 100vh;
+        padding: 25px 15px;
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1100;
+        background: #173b70;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    /* Main content */
+    .main,
+    .main-content {
+        margin-left: 0 !important;
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* Top navigation */
+    .topbar {
+        min-height: 75px;
+        height: auto;
+        padding: 12px 16px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .page-title {
+        font-size: 19px;
+    }
+
+    .page-subtitle {
+        font-size: 12px;
+    }
+
+    .admin-box {
+        gap: 7px;
+    }
+
+    .admin-name {
+        font-size: 12px;
+    }
+
+    .admin-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+    }
+
+    /* Page content */
+    .content {
+        padding: 16px;
+    }
+
+    /* Cards */
+    .card {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .card-header {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    /* Forms */
+    input,
+    select,
+    textarea,
+    button {
+        max-width: 100%;
+    }
+
+    /* Tables - horizontal scrolling */
+    .table-container,
+    .table-wrapper {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 650px;
+    }
+
+    /* Dashboard cards / statistics */
+    .stats-container,
+    .stats-grid,
+    .dashboard-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* General overflow protection */
+    body {
+        overflow-x: hidden;
+    }
+}
+
+@media screen and (max-width: 480px) {
+
+    .topbar {
+        padding: 10px 12px;
+    }
+
+    .content {
+        padding: 12px;
+    }
+
+    .card {
+        padding: 13px;
+    }
+
+    .page-title {
+        font-size: 17px;
+    }
+
+    .admin-name {
+        font-size: 11px;
+    }
+
+    .stats-container,
+    .stats-grid,
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media screen and (max-width: 768px) {
+
+    .mobile-menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        border: none;
+        border-radius: 8px;
+        background: #173b70;
+        color: #ffffff;
+        font-size: 24px;
+        cursor: pointer;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1101;
+    }
+
+}

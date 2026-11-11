@@ -366,12 +366,13 @@
         border-radius: 50%;
     }
 
-    /* ================= FOOTER ================= */
+    /* =================
+        FOOTER
+    ================= */
 
     footer {
         text-align: center;
         padding: 25px;
-        margin-top: 25px;
         color: #8a94a6;
         font-size: 12px;
     }
@@ -389,36 +390,6 @@
     }
 
     @media (max-width: 800px) {
-        .sidebar {
-            width: 70px;
-            padding: 20px 8px;
-        }
-
-        .logo h2,
-        .logo p,
-        .menu-title,
-        .menu a span:not(.menu-icon),
-        .logout-menu span {
-            display: none;
-        }
-
-        .logo .icon {
-            font-size: 32px;
-        }
-
-        .menu a {
-            justify-content: center;
-            padding: 13px 5px;
-        }
-
-        .logout-menu {
-            left: 8px;
-            right: 8px;
-        }
-
-        .main {
-            margin-left: 70px;
-        }
 
         .topbar {
             padding: 0 18px;
@@ -480,6 +451,8 @@
         }
     }
 </style>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
 
 </head>
 
@@ -552,7 +525,12 @@
 
     <!-- TOP BAR -->
 
+
     <header class="topbar">
+
+        <button type="button" class="mobile-menu-btn" aria-label="Toggle navigation">
+            ☰
+        </button>
 
         <div>
             <h1>Dashboard</h1>
@@ -852,15 +830,14 @@
 
     </section>
 
-
     <!-- FOOTER -->
-
     <footer>
-        © 2026 Library Management System |
-        Admin Dashboard
+        © 2026 Library Management System | All Rights Reserved.
     </footer>
 
 </main>
+
+<script src="{{ url_for('static', filename='js/responsive.js') }}"></script>
 
 </body>
 
